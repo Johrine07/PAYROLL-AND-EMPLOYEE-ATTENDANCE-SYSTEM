@@ -91,16 +91,21 @@ class PayrollSystem:
             is_weekday = day_of_week < 5  # Weekdays: Monday to Friday
 
             if is_weekday:
-                if position in ("Security Guard", "Guard") and department == "Security":
-                    # Rotate through 3 shifts (Shift A, Shift B, Shift C) for guards
-                    shift = self.GUARD_SHIFTS[guard_shift_index % 3]  # 3 shifts (A, B, C)
-                    shift_position = f"Security Guard - {shift['shift_name']}"  # Unique position name
-                    schedule[current_date.strftime("%Y-%m-%d")] = (
-                        f"{shift_position}: {shift['shift_name']} (1HR Break)"
-                    )
-                    guard_shift_index += 1  # Increment to rotate through the shifts
+                if position in ("Security Guard A", "Security Guard B", "Security Guard C") and department == "Security":
+                    # Assign guards to specific shifts
+                    guard_shift = None
+                    if position == "Security Guard A":
+                        guard_shift = self.GUARD_SHIFTS[0]  # Shift A
+                    elif position == "Security Guard B":
+                        guard_shift = self.GUARD_SHIFTS[1]  # Shift B
+                    elif position == "Security Guard C":
+                        guard_shift = self.GUARD_SHIFTS[2]  # Shift C
+
+                    if guard_shift:
+                        schedule[current_date.strftime("%Y-%m-%d")] = (
+                            f"{position}: {guard_shift['shift_name']} (1HR Break)"
+                        )
                 else:
-                    # Assign shifts based on the position (e.g., Manager, Sales, HR)
                     shift_def = self.POSITION_SHIFTS.get(position)
                     if not shift_def:
                         shift_def = {"start": time(8, 0), "end": time(16, 0), "window_hours": 8}
@@ -337,6 +342,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
