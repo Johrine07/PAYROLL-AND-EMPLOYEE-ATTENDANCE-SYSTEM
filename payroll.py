@@ -200,7 +200,7 @@ class PayrollSystem:
                     total_undertime_minutes += undertime_duration.total_seconds() / 60
 
                 if time_out_dt > sch_end_dt:
-                    overtime_duration = time_out_dt - sch_end_dt
+                    if time_in_dt >= sch_start_dt:
                     total_overtime_hours += overtime_duration.total_seconds() / 3600
 
             except ValueError:
@@ -334,4 +334,5 @@ class PayrollSystem:
         self.conn.commit()
 
         cursor.close()  # Ensure cursor is closed after use
+
         return report, None
