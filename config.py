@@ -1,0 +1,1 @@
+DB_NAME = "employee_management.db"
