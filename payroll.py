@@ -201,7 +201,8 @@ class PayrollSystem:
 
                 if time_out_dt > sch_end_dt:
                     if time_in_dt >= sch_start_dt:
-                    total_overtime_hours += overtime_duration.total_seconds() / 3600
+                        overtime_duration = time_out_dt - sch_end_dt
+                        total_overtime_hours += overtime_duration.total_seconds() / 3600
 
             except ValueError:
                 print(f"Error parsing time data for employee {employee_id} on {att_date_str}")
@@ -336,3 +337,4 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
