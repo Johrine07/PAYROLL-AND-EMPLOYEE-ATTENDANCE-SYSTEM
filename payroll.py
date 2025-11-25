@@ -82,13 +82,13 @@ class PayrollSystem:
         end_date = date(year, month, 1).replace(day=28) + timedelta(days=4)
         end_date = end_date - timedelta(days=end_date.day)
 
-        guard_shift_index = 0  # Initialize the index for rotating through the guard shifts
+        guard_shift_index = 0 
         current_date = start_date
         weekdays = 0
 
         while current_date <= end_date:
             day_of_week = current_date.weekday()
-            is_weekday = day_of_week < 5  # Weekdays: Monday to Friday
+            is_weekday = day_of_week < 5 
 
             if is_weekday:
                 if position in ("Security Guard A", "Security Guard B", "Security Guard C") and department == "Security":
@@ -337,6 +337,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
