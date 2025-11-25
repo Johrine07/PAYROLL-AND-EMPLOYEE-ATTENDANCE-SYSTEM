@@ -157,13 +157,12 @@ class PayrollSystem:
             employee_data = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
             emp_pos = employee_data[0] if employee_data else "Unknown"
 
-                sch_start = None
-                sch_end = None
+            sch_start = None
+            sch_end = None
                 
-                if "Shift A" in shift_detail or "Shift B" in shift_detail or "Shift C" in shift_detail:
-                    shift = None
-                    for s in self.GUARD_SHIFTS:
-                        if s["shift_name"] in shift_detail:
+            if "Shift A" in shift_detail or "Shift B" in shift_detail or "Shift C" in shift_detail:
+                    for shift in self.GUARD_SHIFTS:
+                        if s["shift_name"] in shift_info:
                             sch_start = shift["start"]
                             sch_end = shift["end"]
                             break
@@ -174,59 +173,56 @@ class PayrollSystem:
 
                 if not sch_start or not sch_end:
                     continue
-                else:
-                    emp_pos = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
-                    emp_pos = emp_pos[0] if emp_pos else ""
-                    shift_def = self.POSITION_SHIFTS.get(emp_pos, {"start": time(8, 0), "end": time(16, 0), "window_hours": 8})
-                    sch_start = shift_def["start"]
-                    sch_end = shift_def["end"]
-                    window_hours = shift_def["window_hours"]
-
-                paid_hours = window_hours - self.LUNCH_BREAK_HOURS
-
-                att_date = datetime.datetime.strptime(att_date_str, '%Y-%m-%d').date()
                 sch_start_dt = datetime.datetime.combine(att_date, sch_start)
                 sch_end_dt = datetime.datetime.combine(att_date, sch_end)
+
                 if sch_end <= sch_start:
                     sch_end_dt += timedelta(days=1)
-
-                time_in_dt = datetime.datetime.strptime(f"{att_date_str} {time_in_str}", '%Y-%m-%d %H:%M:%S')
-                time_out_dt = datetime.datetime.strptime(f"{att_date_str} {time_out_str}", '%Y-%m-%d %H:%M:%S')
-                if time_out_dt <= time_in_dt:
-                    time_out_dt += timedelta(days=1)
+                    if time_out_dt < sch_start_dt:
+                        time_out_dt += timedelta(days=1)
 
                 if time_in_dt > sch_start_dt:
                     tardiness_duration = time_in_dt - sch_start_dt
-                    total_tardiness_minutes += tardiness_duration.total_seconds() / 60
+                    total_tardiness += tardiness_duration.total_seconds() / 60 
+
 
                 if time_out_dt < sch_end_dt:
-                    undertime_duration = sch_end_dt - time_out_dt
-                    total_undertime_minutes += undertime_duration.total_seconds() / 60
+                     undertime_duration = sch_end_dt - time_out_dt
+                     total_undertime += undertime_duration.total_seconds() / 60 
 
+
+                overtime = 0.0
                 if time_out_dt > sch_end_dt:
-                    if time_in_dt >= sch_start_dt:
-                        overtime_duration = time_out_dt - sch_end_dt
-                        total_overtime_hours += overtime_duration.total_seconds() / 3600
+                    overtime_duration = time_out_dt - sch_end_dt
+                    overtime = overtime_duration.total_seconds() / 3600
 
-            except ValueError:
-                print(f"Error parsing time data for employee {employee_id} on {att_date_str}")
-                continue
+                total_overtime += overtime
 
-        total_leave_days = sum(v for _, v in approved_leaves.values())
-        days_present += total_leave_days
+                duration = time_out_dt - time_in_dt
+                duration_hours = duration.total_seconds() / 3600
+            
+            if duration_hours >= 5:
+                paid_hours = max(0, duration_hours - self.LUNCH_BREAK_HOURS)
+            else:
+                paid_hours = duration_hours
 
-        days_absent = total_working_days - days_present
+            actual_paid_hours = min(paid_hours, self.STANDARD_PAID_HOURS) + overtime
+            total_paid_hours += actual_paid_hours
 
-        cursor.close()  # Ensure cursor is closed after use
+            if actual_paid_hours > 0:
+                days_present += 1.0 
+
+        for d, (lt, value) in approved_leaves.items():
+            if schedule.get(d) and "Rest Day" not in schedule.get(d):
+                days_present += value
 
         return {
-            'days_present': days_present,
-            'total_overtime_hours': round(total_overtime_hours, 2),
-            'total_working_days': total_working_days,
-            'approved_leaves_days': total_leave_days,
-            'approved_leaves_count': len(approved_leaves),
-            'total_tardiness_minutes': round(total_tardiness_minutes, 2),
-            'total_undertime_minutes': round(total_undertime_minutes, 2),
+            total_paid_hours": total_paid_hours,
+            "total_overtime": total_overtime,
+            "total_tardiness": total_tardiness,
+            "total_undertime": total_undertime,
+            "days_present": days_present,
+            "total_working_days": total_working_days,
         }
 
     def calculate_pay(self, employee_id, month, year, period=1):
@@ -341,6 +337,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
