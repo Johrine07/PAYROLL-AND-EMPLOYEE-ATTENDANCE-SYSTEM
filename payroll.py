@@ -140,35 +140,34 @@ class PayrollSystem:
         total_overtime_hours = 0.0
         total_tardiness_minutes = 0.0
         total_undertime_minutes = 0.0
-
         days_present = 0.0
-        logged_dates = set()
-
-        for record in records:
-            att_date_str, time_in_str, time_out_str = record
-
-            if not time_in_str or not time_out_str or not schedule.get(att_date_str, "").startswith("Work Day"):
+        
+        for date_str, time_in_str, time_out_str in records:
+            if not time_in_str or not time_out_str:
                 continue
 
-            if att_date_str in approved_leaves:
-                continue
+            att_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+            time_in_dt = datetime.datetime.strptime(f"{date_str} {time_in_str}", '%Y-%m-%d %H:%M:%S')
+            time_out_dt = datetime.datetime.strptime(f"{date_str} {time_out_str}", '%Y-%m-%d %H:%M:%S')
 
-            if att_date_str not in logged_dates:
-                logged_dates.add(att_date_str)
-                days_present += 1.0
+            shift_info = schedule.get(date_str)
+            if not shift_info or "Rest Day" in shift_info:
+                continue 
 
-            try:
-                shift_detail = schedule[att_date_str]
+            employee_data = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
+            emp_pos = employee_data[0] if employee_data else "Unknown"
+
 
                 sch_start = None
                 sch_end = None
-                window_hours = 8
+                
 
                 if "Shift A" in shift_detail or "Shift B" in shift_detail or "Shift C" in shift_detail:
                     shift = None
                     for s in self.GUARD_SHIFTS:
                         if s["shift_name"] in shift_detail:
-                            shift = s
+                            sch_start = shift["start"]
+                            sch_end = shift["end"]
                             break
                     if not shift:
                         continue
@@ -342,6 +341,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
