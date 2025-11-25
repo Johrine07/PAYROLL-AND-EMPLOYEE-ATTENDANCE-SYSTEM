@@ -157,11 +157,9 @@ class PayrollSystem:
             employee_data = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
             emp_pos = employee_data[0] if employee_data else "Unknown"
 
-
                 sch_start = None
                 sch_end = None
                 
-
                 if "Shift A" in shift_detail or "Shift B" in shift_detail or "Shift C" in shift_detail:
                     shift = None
                     for s in self.GUARD_SHIFTS:
@@ -169,11 +167,13 @@ class PayrollSystem:
                             sch_start = shift["start"]
                             sch_end = shift["end"]
                             break
-                    if not shift:
-                        continue
+                else: 
+                    shift_def = self.POSITION_SHIFTS.get(emp_pos, self.POSITION_SHIFTS.get("Manager"))
                     sch_start = shift["start"]
                     sch_end = shift["end"]
-                    window_hours = shift["window_hours"]
+
+                if not sch_start or not sch_end:
+                    continue
                 else:
                     emp_pos = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
                     emp_pos = emp_pos[0] if emp_pos else ""
@@ -341,6 +341,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
