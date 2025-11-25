@@ -448,7 +448,16 @@ NET PAY:              PHP {report['net_pay']:,.2f}
             day_name = current_date.strftime('%a')
 
             shift_info = schedule.get(date_str, "Rest Day")
-            if shift_info.startswith("Work Day"):
+            is_workday = (
+                isinstance(shift_info, str) and (
+                    shift_info.startswith("Work Day") or
+                    "Shift A" in shift_info or
+                    "Shift B" in shift_info or
+                    "Shift C" in shift_info
+                )
+            )
+
+            if is_workday:
                 if date_str in approved_leaves:
                     lt, val = approved_leaves[date_str]
                     self.attendance_tree.insert('', tk.END, values=(
@@ -1140,4 +1149,5 @@ NET PAY:              PHP {report['net_pay']:,.2f}
 
 if __name__ == '__main__':
     app = EmployeeApp()
+
     app.mainloop()
