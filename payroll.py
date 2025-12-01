@@ -250,9 +250,9 @@ class PayrollSystem:
 
     def calculate_pay(self, employee_id, month, year, period=1):
         cursor = self.conn.cursor()
-        employee_data = cursor.execute("SELECT salary FROM employees WHERE id=?", (employee_id,)).fetchone()
-        if not employee_data:
-            cursor.close()  # Ensure cursor is closed if employee not found
+         emp_row = cursor.execute("SELECT salary FROM employees WHERE id=?", (employee_id,)).fetchone()
+        if not emp_row:
+            cursor.close()
             return None, "Employee not found."
 
         monthly_salary = employee_data[0]
@@ -360,6 +360,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
