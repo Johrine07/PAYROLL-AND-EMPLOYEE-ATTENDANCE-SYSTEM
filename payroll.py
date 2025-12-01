@@ -30,7 +30,7 @@ class PayrollSystem:
         self.conn = db_conn
 
     def calculate_daily_rate(self, monthly_salary):
-        return monthly_salary / 22 if monthly_salary else 0
+        return monthly_salary / 20 if monthly_salary else 0
 
     def calculate_deductions(self, gross_salary):
         if gross_salary < 1000:
@@ -337,6 +337,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
