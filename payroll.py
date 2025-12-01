@@ -194,50 +194,43 @@ class PayrollSystem:
 
                 paid_hours = window_hours - self.LUNCH_BREAK_HOURS
 
-                if not sch_start or not sch_end:
-                    continue
+                att_date = datetime.datetime.strptime(d, "%Y-%m-%d").date()
                 sch_start_dt = datetime.datetime.combine(att_date, sch_start)
                 sch_end_dt = datetime.datetime.combine(att_date, sch_end)
-
                 if sch_end <= sch_start:
                     sch_end_dt += timedelta(days=1)
-                    if time_out_dt < sch_start_dt:
+
+                if time_in_str:
+                    time_in_dt = datetime.datetime.strptime(f"{d} {time_in_str}", "%Y-%m-%d %H:%M:%S")
+                else:
+                    time_in_dt = None
+
+                if sch_end < sch_start:
+                    if time_out_dt:
                         time_out_dt += timedelta(days=1)
 
-                if time_in_dt > sch_start_dt:
+
+                if time_in_dt and time_in_dt < sch_start_dt:
+                    time_in_dt = sch_start_dt
+
+                if time_in_dt and time_in_dt > sch_start_dt:
                     tardiness_duration = time_in_dt - sch_start_dt
-                    total_tardiness += tardiness_duration.total_seconds() / 60 
+                    total_tardiness_minutes += tardiness_duration.total_seconds() / 60.0
 
+                if time_out_dt and time_out_dt < sch_end_dt:
+                    undertime_duration = sch_end_dt - time_out_dt
+                    total_undertime_minutes += undertime_duration.total_seconds() / 60.0
 
-                if time_out_dt < sch_end_dt:
-                     undertime_duration = sch_end_dt - time_out_dt
-                     total_undertime += undertime_duration.total_seconds() / 60 
-
-
-                overtime = 0.0
-                if time_out_dt > sch_end_dt:
+                if time_out_dt and time_out_dt > sch_end_dt:
                     overtime_duration = time_out_dt - sch_end_dt
-                    overtime = overtime_duration.total_seconds() / 3600
+                    total_overtime_hours += overtime_duration.total_seconds() / 3600.0
 
-                total_overtime += overtime
+            except Exception:
+                continue
 
-                duration = time_out_dt - time_in_dt
-                duration_hours = duration.total_seconds() / 3600
-            
-            if duration_hours >= 5:
-                paid_hours = max(0, duration_hours - self.LUNCH_BREAK_HOURS)
-            else:
-                paid_hours = duration_hours
+        total_leave_days = sum(v for _, v in approved_leaves.values())
 
-            actual_paid_hours = min(paid_hours, self.STANDARD_PAID_HOURS) + overtime
-            total_paid_hours += actual_paid_hours
-
-            if actual_paid_hours > 0:
-                days_present += 1.0 
-
-        for d, (lt, value) in approved_leaves.items():
-            if schedule.get(d) and "Rest Day" not in schedule.get(d):
-                days_present += value
+        cursor.close()
 
         return {
             'days_present': days_present,
@@ -361,6 +354,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
