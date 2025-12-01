@@ -267,8 +267,9 @@ class PayrollSystem:
             period_label = "1st Half (1-15)"
         else:
             start_date = date(year, month, 16)
-            end_date = date(year, month, 1).replace(day=28) + timedelta(days=4)
-            end_date = end_date - timedelta(days=end_date.day)
+            end_of_month = (date(year, month, 1).replace(day=28) + timedelta(days=4))
+            end_of_month = end_of_month - timedelta(days=end_of_month.day)
+            end_date = end_of_month
             period_label = "2nd Half (16-End)"
 
         attendance_data = self.get_attendance_summary(employee_id, start_date, end_date)
@@ -360,6 +361,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
