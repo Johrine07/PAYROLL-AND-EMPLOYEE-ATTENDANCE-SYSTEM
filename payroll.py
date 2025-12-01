@@ -240,12 +240,12 @@ class PayrollSystem:
                 days_present += value
 
         return {
-            total_paid_hours": total_paid_hours,
-            "total_overtime": total_overtime,
-            "total_tardiness": total_tardiness,
-            "total_undertime": total_undertime,
-            "days_present": days_present,
-            "total_working_days": total_working_days,
+            'days_present': days_present,
+            'total_overtime_hours': round(total_overtime_hours, 2),
+            'total_working_days': total_working_days,
+            'approved_leaves_days': total_leave_days,
+            'total_tardiness_minutes': round(total_tardiness_minutes, 2),
+            'total_undertime_minutes': round(total_undertime_minutes, 2),
         }
 
     def calculate_pay(self, employee_id, month, year, period=1):
@@ -360,6 +360,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
