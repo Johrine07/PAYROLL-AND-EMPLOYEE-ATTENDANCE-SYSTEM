@@ -295,14 +295,11 @@ class PayrollSystem:
             gross_pay = base_pay + overtime_pay
 
              sss_m, pagibig_m, phil_m, tax_m = self.calculate_deductions(monthly_salary)
-        sss = sss_m / 2.0
-        pagibig = pagibig_m / 2.0
-        philhealth = phil_m / 2.0
-        tax = tax_m / 2.0
-        total_mandatory_deductions = sss + pagibig + philhealth + tax
-
-        
-        
+            sss = sss_m / 2.0
+            pagibig = pagibig_m / 2.0
+            philhealth = phil_m / 2.0
+            tax = tax_m / 2.0
+            total_mandatory_deductions = sss + pagibig + philhealth + tax 
 
         sss, pagibig, philhealth, tax = self.calculate_deductions(monthly_salary)
         sss /= 2
@@ -372,6 +369,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
