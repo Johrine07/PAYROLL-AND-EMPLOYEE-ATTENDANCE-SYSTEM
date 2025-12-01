@@ -154,34 +154,45 @@ class PayrollSystem:
         days_present = 0.0
         logged_dates = set()
         
-        for date_str, time_in_str, time_out_str in records:
-            if not time_in_str or not time_out_str:
+        for d in sorted(schedule.keys()):
+            day_label = schedule[d]
+
+
+            if "Rest Day" in day_label:
                 continue
 
-            att_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
-            time_in_dt = datetime.datetime.strptime(f"{date_str} {time_in_str}", '%Y-%m-%d %H:%M:%S')
-            time_out_dt = datetime.datetime.strptime(f"{date_str} {time_out_str}", '%Y-%m-%d %H:%M:%S')
+            if d in approved_leaves:
+                _, leave_days = approved_leaves[d]
+                days_present += leave_days
+                continue
 
-            shift_info = schedule.get(date_str)
-            if not shift_info or "Rest Day" in shift_info:
-                continue 
+            tin_tout = attendance_map.get(d)
+            if not tin_tout:
+                continue
 
-            employee_data = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
-            emp_pos = employee_data[0] if employee_data else "Unknown"
+            time_in_str, time_out_str = tin_tout
 
-            sch_start = None
-            sch_end = None
-                
-            if "Shift A" in shift_detail or "Shift B" in shift_detail or "Shift C" in shift_detail:
-                    for shift in self.GUARD_SHIFTS:
-                        if s["shift_name"] in shift_info:
-                            sch_start = shift["start"]
-                            sch_end = shift["end"]
-                            break
-                else: 
-                    shift_def = self.POSITION_SHIFTS.get(emp_pos, self.POSITION_SHIFTS.get("Manager"))
+            if time_in_str and time_out_str:
+                logged_dates.add(d)
+                days_present += 1.0
+
+            try:
+                if "Shift" in day_label:
+                    shift = next((s for s in self.GUARD_SHIFTS if s["shift_name"] in day_label), None)
+                    if not shift:
+                        continue
                     sch_start = shift["start"]
                     sch_end = shift["end"]
+                    window_hours = shift["window_hours"]
+                else:
+                    emp_pos_row = cursor.execute("SELECT position FROM employees WHERE id=?", (employee_id,)).fetchone()
+                    emp_pos = emp_pos_row[0] if emp_pos_row else None
+                    shift_def = self.POSITION_SHIFTS.get(emp_pos, {"start": time(8, 0), "end": time(16, 0), "window_hours": 8})
+                    sch_start = shift_def["start"]
+                    sch_end = shift_def["end"]
+                    window_hours = shift_def["window_hours"]
+
+                paid_hours = window_hours - self.LUNCH_BREAK_HOURS
 
                 if not sch_start or not sch_end:
                     continue
@@ -349,6 +360,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
