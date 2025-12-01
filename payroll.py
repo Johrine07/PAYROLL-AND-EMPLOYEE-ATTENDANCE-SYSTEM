@@ -135,12 +135,24 @@ class PayrollSystem:
         records = cursor.fetchall()
 
         approved_leaves = self.get_approved_leaves(employee_id, start_date, end_date)
-        schedule, total_working_days = self.get_employee_schedule(employee_id, start_date.month, start_date.year)
+        full_schedule, _ = self.get_employee_schedule(employee_id, start_date.month, start_date.year)
+        schedule = {
+            d: full_schedule[d] for d in full_schedule
+            if start_date.strftime('%Y-%m-%d') <= d <= end_date.strftime('%Y-%m-%d')
+        }
+
+        total_working_days = sum(1 for d, v in schedule.items() if ("Work Day" in v) or ("Shift" in v))
+
+        attendance_map = {}
+        for d, tin, tout in records:
+            attendance_map[d] = (tin, tout)
 
         total_overtime_hours = 0.0
         total_tardiness_minutes = 0.0
         total_undertime_minutes = 0.0
+
         days_present = 0.0
+        logged_dates = set()
         
         for date_str, time_in_str, time_out_str in records:
             if not time_in_str or not time_out_str:
@@ -337,6 +349,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
