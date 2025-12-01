@@ -284,7 +284,14 @@ class PayrollSystem:
         total_time_based_deduction = tardiness_deduction + undertime_deduction
 
         if days_absent < 0:
-        gross_pay = base_pay + overtime_pay
+            days_absent = 0.0
+            absence_deduction = days_absent * daily_rate
+            tardiness_deduction = total_tardiness_minutes * minute_rate
+            undertime_deduction = total_undertime_minutes * minute_rate 
+            total_time_based_deduction = tardiness_deduction + undertime_deduction
+
+        
+        
 
         sss, pagibig, philhealth, tax = self.calculate_deductions(monthly_salary)
         sss /= 2
@@ -354,6 +361,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
