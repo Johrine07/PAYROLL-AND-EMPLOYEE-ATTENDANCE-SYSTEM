@@ -272,7 +272,7 @@ class PayrollSystem:
             end_date = end_of_month
             period_label = "2nd Half (16-End)"
 
-        attendance_data = self.get_attendance_summary(employee_id, start_date, end_date)
+        attendance = self.get_attendance_summary(employee_id, start_date, end_date)
 
         total_working_days = attendance_data['total_working_days']
         days_present = attendance_data['days_present']
@@ -361,6 +361,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
