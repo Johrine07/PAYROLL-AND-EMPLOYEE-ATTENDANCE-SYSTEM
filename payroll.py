@@ -205,10 +205,13 @@ class PayrollSystem:
                 else:
                     time_in_dt = None
 
-                if sch_end < sch_start:
-                    if time_out_dt:
-                        time_out_dt += timedelta(days=1)
+                if time_out_str:
+                    time_out_dt = datetime.datetime.strptime(f"{d} {time_out_str}", "%Y-%m-%d %H:%M:%S")
+                else:
+                    time_out_dt = None
 
+                if time_out_dt and time_out_dt <= time_in_dt:
+                    time_out_dt += timedelta(days=1)
 
                 if time_in_dt and time_in_dt < sch_start_dt:
                     time_in_dt = sch_start_dt
@@ -362,6 +365,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
