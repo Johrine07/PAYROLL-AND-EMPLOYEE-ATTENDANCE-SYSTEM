@@ -288,21 +288,21 @@ class PayrollSystem:
 
         if days_absent < 0:
             days_absent = 0.0
-            absence_deduction = days_absent * daily_rate
-            tardiness_deduction = total_tardiness_minutes * minute_rate
-            undertime_deduction = total_undertime_minutes * minute_rate 
-            total_time_based_deduction = tardiness_deduction + undertime_deduction
+        absence_deduction = days_absent * daily_rate
+        tardiness_deduction = total_tardiness_minutes * minute_rate
+        undertime_deduction = total_undertime_minutes * minute_rate 
+        total_time_based_deduction = tardiness_deduction + undertime_deduction
 
-            base_pay = days_present * daily_rate
-            overtime_pay = total_overtime_hours * hourly_rate * 1.25 
-            gross_pay = base_pay + overtime_pay
+        base_pay = days_present * daily_rate
+        overtime_pay = total_overtime_hours * hourly_rate * 1.25 
+        gross_pay = base_pay + overtime_pay
 
-            sss_m, pagibig_m, phil_m, tax_m = self.calculate_deductions(monthly_salary)
-            sss = sss_m / 2.0
-            pagibig = pagibig_m / 2.0
-            philhealth = phil_m / 2.0
-            tax = tax_m / 2.0
-            total_mandatory_deductions = sss + pagibig + philhealth + tax 
+        sss_m, pagibig_m, phil_m, tax_m = self.calculate_deductions(monthly_salary)
+        sss = sss_m / 2.0
+        pagibig = pagibig_m / 2.0
+        philhealth = phil_m / 2.0
+        tax = tax_m / 2.0
+        total_mandatory_deductions = sss + pagibig + philhealth + tax 
 
         loan_deduction = 0.0
         loans = cursor.execute("""
@@ -365,6 +365,7 @@ class PayrollSystem:
         cursor.close()  # Ensure cursor is closed after use
 
         return report, None
+
 
 
 
